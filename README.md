@@ -1,4 +1,4 @@
-# PHP-Text-to-image  
+# PHP-Add-text-to-image  
 Adds text to an image. PHP >= 7.0  
   
 ### Construct
