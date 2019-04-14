@@ -38,7 +38,6 @@ declare(strict_types=1);
  */
 
 class TextToImage
-
 {
     /** @var string|null  */
     private $text = null;
