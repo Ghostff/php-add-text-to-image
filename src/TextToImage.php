@@ -111,7 +111,7 @@ class TextToImage
     }
 
     /**
-     * Sets text font size/
+     * Sets text font size.
      *
      * @param int $size The font size of text.
      * @return \TextToImage
@@ -186,7 +186,7 @@ class TextToImage
      * @param array    $color       Shadow color.
      * @return $this
      */
-    public function setShadow(int $position_x = null, int $position_y = null, array $color = [0, 0, 0])
+    public function setShadow(int $position_x = null, int $position_y = null, array $color = [0, 0, 0]): TextToImage
     {
         $this->shadow_position_x = $position_x;
         $this->shadow_position_y = $position_y;
