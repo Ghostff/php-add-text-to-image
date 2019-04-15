@@ -93,6 +93,15 @@ echo (new TextToImage('Hey FooBar'))
 
 ---
 
+`setSavePath(string $save_path): TextToImage`  
+**Description:** Sets image save path. Used if image is to be save to a file.
+  
+| Params        |Description                        |
+|---------------|-----------------------------------|
+|save_path     |The image save path.               |
+
+---
+
 `setShadow(int $position_x, int $position_y, array $color : [0, 0, 0]): TextToImage`   
 **Description:** Sets image shadow, color and position. Calling this method without passing args will enable default shadow.  
 **Example:** `$tti->setShadow();`, `$tti->setShadow(null, null, [255, 0, 0]);`
