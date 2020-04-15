@@ -33,7 +33,6 @@ header('Content-Type: image/jpg');
 ## Save image to file.  
 ```php  
 echo (new TextToImage('Hey FooBar'))  
- ->setImage('generic.jpg')  
  ->setPosition(1, 1)  
  ->setShadow(1, 1, [255, 0, 0])  
  ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
