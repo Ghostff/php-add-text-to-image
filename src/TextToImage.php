@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -39,112 +40,268 @@ declare(strict_types=1);
 
 class TextToImage
 {
+    private $maps      = [];
     /** @var string|null  */
-    private $text = null;
-    /** @var int|null  */
-    private $position_x = null;
-    /** @var int|null  */
-    private $position_y = null;
-    /** @var string|null  */
-    private $font = null;
-    /** @var int|null  */
-    private $font_size = null;
-    /** @var array|null  */
-    private $color = null;
-    /** @var string|null  */
-    private $image_path = null;
-    /** @var string|null  */
-    private $save_path = null;
-    /** @var null|array  */
-    private $shadow_color = null;
-    /** @var null|int  */
-    private $shadow_position_x = null;
-    /** @var null|int */
-    private $shadow_position_y = null;
+    private $work_with = null;
+    private $create    = [];
 
     /**
-     * Img constructor.
+     * TextToImage constructor.
      *
-     * @param string      $text         The text to add to image.
-     * @param int         $position_x   The X position of text.
-     * @param int         $position_y   The Y position of text.
-     * @param array       $color        The Color of ext.
-     * @param string|null $image        The Image to add text to.
-     * @param string|null $font         The font of text to add to image.
-     * @param int         $font_size    The font size of text to add to image.
-     * @param string      $save_path    The save location of new image.
+     * @param string $image_path    The path to image to modify.
+     * @param array $create         An an array of properties for creating new image if $image_path is ''
      */
-    public function __construct(
-        string $text,
-        int $position_x = 0,
-        int $position_y = 0,
-        array $color = [255, 255, 255],
-        string $image = null,
-        string $font = null,
-        int $font_size = 5,
-        string $save_path = null
-    )
+    public function __construct(string $image_path, array $create = [])
     {
-        $this->text         = $text;
-        $this->position_x   = $position_x;
-        $this->position_y   = $position_y;
-        $this->color        = $color;
-        $this->image_path   = $image;
-        $this->font_size    = $font_size;
-        $this->font         = $font;
-        $this->save_path    = $save_path;
+        $this->work_with = $image_path;
+        $this->create    = $create;
     }
 
     /**
-     * Sets the position of text.
+     * Select appropriate image render type.
      *
-     * @param int $position_x   The X position of text.
-     * @param int $position_y   The Y position of text.
-     * @return \TextToImage
+     * @param resource $image
+     * @param int $font_size
+     * @param int $x
+     * @param int $y
+     * @param string $text
+     * @param int $color
+     * @param string|null $font
      */
-    public function setPosition(int $position_x, int $position_y): TextToImage
+    private function write($image, int $font_size, int $x, int $y, string $text, int $color, string $font = null)
     {
-        $this->position_x = $position_x;
-        $this->position_y = $position_y;
+        if ($font !== null) {
+            imagettftext($image, $font_size, 0, $x, $y, $color, $font, $text);
+        } else {
+            imagestring($image, $font_size, $x, $y, $text, $color);
+        }
+    }
+
+    /**
+     * Opens Specified image for modification.
+     *
+     * @param Closure ...$closures  A sets of image modifications.
+     * @return $this
+     */
+    public function open(Closure ...$closures)
+    {
+        $this->maps = array_merge($this->maps, $closures);
 
         return $this;
     }
 
     /**
-     * Sets text font size.
+     * Writes modifications to image and return new imag path.
      *
-     * @param int $size The font size of text.
-     * @return \TextToImage
+     * @param string|null $save_path    The path to save modified image, if null, image is outputted to browser.
+     * @return string
      */
-    public function setFontSize(int $size): TextToImage
+    public function close(string $save_path = null)
+    {
+        if (count($this->create) != 0)
+        {
+            $ext   = $this->create[2];
+            $image = @imagecreate($this->create[0], $this->create[1]);
+            imagecolorallocate($image, ...$this->create[3]);
+        }
+        else
+        {
+            if (!is_readable($this->work_with)) {
+                throw new RuntimeException('Image to write text to not specified or does not exist.');
+            }
+
+            $ext = strtolower(pathinfo($this->work_with, PATHINFO_EXTENSION));
+
+            if ($ext == 'jpg' || $ext == 'jpeg') {
+                $image = imagecreatefromjpeg($this->work_with);
+            } elseif ($ext == 'png') {
+                $image = imagecreatefrompng($this->work_with);
+            } elseif ($ext == 'gif') {
+                $image = imagecreatefromgif($this->work_with);
+            } else {
+                throw new RuntimeException("{$ext} not supported, implement it yourself.");
+            }
+        }
+
+        /** @var TextHandler $map */
+        foreach ($this->maps as $closure)
+        {
+            $closure($map = new TextHandler());
+
+            if ($map->font !== null && ! is_readable($map->font)) {
+                throw new RuntimeException("Font \"{$map->font}\" not found.");
+            }
+
+            $new_color = imagecolorallocate($image, $map->color[0], $map->color[1], $map->color[2]);
+
+            if (count($map->shadow_color) != 0) {
+                $shadow = imagecolorallocate($image, $map->shadow_color[0], $map->shadow_color[1], $map->shadow_color[2]);
+                $this->write(
+                    $image,
+                    $map->font_size,
+                    $map->shadow_position_x + $map->position_x,
+                    $map->shadow_position_y + $map->position_y,
+                    $map->text,
+                    $shadow ?? $new_color,
+                    $map->font
+                );
+            }
+
+            $this->write($image, $map->font_size, $map->position_x, $map->position_y, $map->text, $new_color, $map->font);
+        }
+
+        $save_as = $save_path ? "$save_path.{$ext}" : null;
+
+        if ($ext == 'jpg' || $ext == 'jpeg') {
+            imagejpeg($image, $save_as);
+        } elseif ($ext == 'png') {
+            imagepng($image, $save_as);
+        } elseif ($ext == 'gif') {
+            imagegif($image, $save_as);
+        }
+        imagedestroy($image);
+
+        return $save_path;
+    }
+
+    /**
+     * Sets up a new image for modification.
+     *
+     * @param string $image_path    The image path.
+     * @return static
+     */
+    public static function setImage(string $image_path): self
+    {
+        return new self($image_path);
+    }
+
+    /**
+     * Create a new image for modification.
+     *
+     * @param int $width        The width of the image.
+     * @param int $height       The height of the image.
+     * @param string $format    The image format e.g png, jpeg or gif
+     * @param array $bg_color   An array [r, g, b] of image background color.
+     * @return static
+     */
+    public static function createImage(int $width, int $height, string $format = 'png', array $bg_color = [255, 255, 255]): self
+    {
+        return new self('', [$width, $height, $format, $bg_color]);
+    }
+}
+
+class TextHandler
+{
+    /** @var string|null  */
+    public $text = null;
+    /** @var int  */
+    public $position_x = 0;
+    /** @var int  */
+    public $position_y = 0;
+    /** @var string|null  */
+    public $font = null;
+    /** @var int  */
+    public $font_size = 5;
+    /** @var array|null  */
+    public $color = [255, 255, 255];
+    /** @var array  */
+    public $shadow_color = [];
+    /** @var null|int  */
+    public $shadow_position_x = null;
+    /** @var null|int */
+    public $shadow_position_y = null;
+
+    /**
+     * Generic Set.
+     *
+     * @param string $text                      Text to add.
+     * @param int $position_x                   Text X position.
+     * @param int $position_y                   Text Y position.
+     * @param array $color                      Text color [r, g, b]
+     * @param string|null $font                 Text font file path.
+     * @param int $font_size                    Text font size.
+     * @param int|null $shadow_position_x       Text shadow position x.
+     * @param int|null $shadow_position_y       Text shadow position y.
+     * @param array $shadow_color               Text shadow color.
+     * @return $this
+     */
+    public function set(
+        string $text,
+        int $position_x        = 0,
+        int $position_y        = 0,
+        array $color           = [255, 255, 255],
+        string $font           = null,
+        int $font_size         = 5,
+        int $shadow_position_x = null,
+        int $shadow_position_y = null,
+        array $shadow_color    = [0, 0, 0]
+    ): self
+    {
+        $this->text              = $text;
+        $this->position_x        = $position_x;
+        $this->position_y        = $position_y;
+        $this->color             = $color;
+        $this->font_size         = $font_size;
+        $this->font              = $font;
+        $this->shadow_position_x = $shadow_position_x;
+        $this->shadow_position_y = $shadow_position_y;
+        $this->shadow_color      = $shadow_color;
+
+        return $this;
+    }
+
+    /**
+     * Adds a text.
+     *
+     * @param string $text  The text to add.
+     * @return $this
+     */
+    public function add(string $text): self
+    {
+        $this->text = $text;
+
+        return $this;
+    }
+
+    /**
+     * Sets the position of added text.
+     *
+     * @param int $x    The X position.
+     * @param int $y    The Y position.
+     * @return $this
+     */
+    public function position(int $x, int $y): self
+    {
+        $this->position_x = $x;
+        $this->position_y = $y;
+
+        return $this;
+    }
+
+    /**
+     * Sets a font file and size for specified text.
+     *
+     * @param int $size             The text font size.
+     * @param string|null $path     The text font file path.
+     * @return $this
+     */
+    public function font(int $size, string $path = null): self
     {
         $this->font_size = $size;
+        $this->font      = $path;
 
         return $this;
     }
 
     /**
-     * Sets text font path.
+     * Sets a color for specified text.
      *
-     * @param string $font_path The text font path.
-     * @return \TextToImage
+     * @param int $r    Red
+     * @param int $g    Green
+     * @param int $b    Blue.
+     * @return $this
      */
-    public function setFont(string $font_path): TextToImage
-    {
-        $this->font = $font_path;
-
-        return $this;
-    }
-
-    /**
-     * Sets text color.
-     *
-     * @param int $r    Red.
-     * @param int $g    Green.
-     * @param int $b    Blue
-     * @return \TextToImage
-     */
-    public function setColor(int $r = 255, int $g = 255, int $b = 255): TextToImage
+    public function color(int $r = 255, int $g = 255, int $b = 255): self
     {
         $this->color = [$r, $g, $b];
 
@@ -152,41 +309,14 @@ class TextToImage
     }
 
     /**
-     * Sets the image text will be written on.
+     * Sets a shadow for specified text.
      *
-     * @param string $image_path    The path to the image.
-     * @return \TextToImage
-     */
-    public function setImage(string $image_path): TextToImage
-    {
-        $this->image_path = $image_path;
-
-        return $this;
-    }
-
-    /**
-     * Sets image save path. Used if image is to be save in a file.
-     *
-     * @param string $save_path The image save path.
-     * @return \TextToImage
-     */
-    public function setSavePath(string $save_path): TextToImage
-    {
-        $this->save_path = $save_path;
-
-        return $this;
-    }
-
-    /**
-     * Sets image shadow, color and position.
-     *  Calling this method without args will enable shadow.
-     *
-     * @param int|null $position_x  Shadow X position.
-     * @param int|null $position_y  Shadow Y position.
-     * @param array    $color       Shadow color.
+     * @param int|null $position_x  The shadow x position.
+     * @param int|null $position_y  The shadow y position.
+     * @param array $color          Array [r, g, b] or the shadow color.
      * @return $this
      */
-    public function setShadow(int $position_x = null, int $position_y = null, array $color = [0, 0, 0]): TextToImage
+    public function shadow(int $position_x = null, int $position_y = null, array $color = []): self
     {
         $this->shadow_position_x = $position_x;
         $this->shadow_position_y = $position_y;
@@ -195,80 +325,4 @@ class TextToImage
         return $this;
     }
 
-    /**
-     * Select appropriate image render type.
-     *
-     * @param resource $image
-     * @param int      $font_size
-     * @param int      $x
-     * @param int      $y
-     * @param string   $text
-     * @param int      $color
-     */
-    private function resolveRender($image, int $font_size, int $x, int $y, string $text, int $color)
-    {
-        if ($this->font) {
-            imagettftext ($image, $font_size, 0, $x, $y, $color , $this->font, $text);
-        }
-        else {
-            imagestring($image, $font_size, $x, $y, $text, $color);
-        }
-    }
-
-    /**
-     * Renders Text upon image.
-     *
-     * @param string|null $save_as The name to save new rendered image as.
-     * @return string|null
-     */
-    public function render(string $save_as = null): ?string
-    {
-        if ($this->save_path && ! is_readable($this->save_path)) {
-            mkdir($this->save_path, 755, true);
-        }
-
-        if (! $this->image_path || ($this->image_path && ! is_readable($this->image_path))) {
-            throw new RuntimeException('Image to write text to not specified or does not exist.');
-        }
-
-        if ($this->font && ! is_readable($this->font)) {
-            throw new RuntimeException('Font not found.');
-        }
-
-        $ext = strtolower(pathinfo($this->image_path, PATHINFO_EXTENSION));
-
-        if ($ext == 'jpg' || $ext == 'jpeg') {
-            $image = imagecreatefromjpeg($this->image_path);
-        }
-        elseif ($ext == 'png') {
-            $image = imagecreatefrompng($this->image_path);
-        }
-        elseif ($ext == 'gif') {
-            $image = imagecreatefromgif($this->image_path);
-        }
-        else {
-            throw new RuntimeException("{$ext} not supported, implement it yourself.");
-        }
-
-        $new_color  = imagecolorallocate($image, $this->color[0], $this->color[1], $this->color[2]);
-        if ($this->shadow_color) {
-            $shadow = imagecolorallocate($image, $this->shadow_color[0], $this->shadow_color[1], $this->shadow_color[2]);
-            $this->resolveRender(
-                $image,
-                $this->font_size,
-                $this->shadow_position_x ?? ($this->position_x + 1),
-                $this->shadow_position_y ?? ($this->position_y + 1),
-                $this->text,
-                $shadow ?? $new_color
-            );
-        }
-
-        $this->resolveRender($image, $this->font_size, $this->position_x, $this->position_y, $this->text, $new_color);
-
-        $save_as = $save_as ? "{$this->save_path}/{$save_as}.{$ext}" : null;
-        imagepng($image, $save_as);
-        imagedestroy($image);
-
-        return $save_as;
-    }
 }
