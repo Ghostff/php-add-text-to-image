@@ -21,26 +21,26 @@ Adds text to an image. PHP >= 7.0
 header('Content-Type: image/jpg');  
   
 (new TextToImage('Hey FooBar'))  
- ->setPosition(1, 1)  
- ->setShadow(1, 1, [255, 0, 0])  
- ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
- ->setFontSize(40)  
- ->setColor(255, 255, 255)  
- ->setImage('generic.jpg')  
- ->render();  
+    ->setPosition(1, 1)  
+    ->setShadow(1, 1, [255, 0, 0])  
+    ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
+    ->setFontSize(40)  
+    ->setColor(255, 255, 255)  
+    ->setImage('generic.jpg')  
+    ->render();  
 ```  
   
 ## Save image to file.  
 ```php  
 echo (new TextToImage('Hey FooBar'))  
- ->setPosition(1, 1)  
- ->setShadow(1, 1, [255, 0, 0])  
- ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
- ->setFontSize(40)  
- ->setColor(255, 255, 255)  
- ->setImage('generic.jpg')  
- ->setSavePath(__DIR__ . '/Rendered')  
- ->render('my-new-image'); // Output: Rendered/my-new-image.jpg  
+    ->setPosition(1, 1)  
+    ->setShadow(1, 1, [255, 0, 0])  
+    ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
+    ->setFontSize(40)  
+    ->setColor(255, 255, 255)  
+    ->setImage('generic.jpg')  
+    ->setSavePath(__DIR__ . '/Rendered')  
+    ->render('my-new-image'); // Output: Rendered/my-new-image.jpg  
 ```
 ### methods
 `setPosition(int $position_x : 0, int $position_y : 0): TextToImage`   
