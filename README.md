@@ -2,33 +2,37 @@
 Adds text to an image. PHP >= 7.0
 
 ### Usage (Existing Image)
-outputting modified image to the browser.
+Outputting modified image to the browser.
 ```php
 header("Content-Type: image/png");
 
-TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler) {
+TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler)
+{
     $handler->add('Text One')->color(255, 0, 0);
 })->close();
 ```
 Saving modified image as a new file.
 ```php
-TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler) {
+TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler)
+{
   $handler->add('Text One')->color(255, 0, 0);
 })->close(__DIR__ . '/new_name_without_extension');
 ```
 
 ### Usage (Non Existing Image)
-outputting modified image to the browser.
+Outputting modified image to the browser.
 ```php
 header("Content-Type: image/png");
 
-TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler) {
+TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler)
+{
     $handler->add('Text One')->color(255, 0, 0);
 })->close();
 ```
 Saving modified image as a new file.
 ```php
-TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler) {
+TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler)
+{
     $handler->add('Text One')->color(255, 0, 0);
 })->close(__DIR__ . '/new_name_without_extension');
 ```
@@ -61,14 +65,17 @@ $text4 = function (TextToImage $handler) {
 TextToImage::createImage(500, 500, 'png')->open($text1, $text2, $text3, $text4)->close();
 ```
 ---
-### Usage
-`setImage(string $image_path)` Modifies an existing image.
+
+### Documentations
+Modifies an existing image.  
+`setImage(string $image_path)`
 
 | Params        |Description                            |
 |---------------|---------------------------------------|
 |image_path     |The path to image to write text onto   |
 
 ---
+Create an image for modification.   
 `createImage(int $width, int $height, string $ext = 'png', array $bg_color = [255, 255, 255])`
   
 | Params        |Description                                  |
@@ -77,16 +84,18 @@ TextToImage::createImage(500, 500, 'png')->open($text1, $text2, $text3, $text4)-
 |height	        |The height of the image.                     |
 |ext	        |The image format e.g png, jpeg or gif        |
 |bg_color       |An array [r, g, b] of image background color |
+---
 
-`open(Closure ...$closures)` Sets image modification data.
+Sets image modification data.  
+`open(Closure ...$closures)`
 
 | Params        |Description                     |
 |---------------|--------------------------------|
 | closures      |A sets of image modifications. Each Closure must accept an argument of `TextToImage`   |
-
 ---
 
-`close(string $save_path = null)` Evaluates all specified image modification.
+Evaluates all specified image modification.  
+`close(string $save_path = null)`
 
 | Params        |Description                     |
 |---------------|--------------------------------|
