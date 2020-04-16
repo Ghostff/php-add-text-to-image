@@ -1,121 +1,153 @@
 # PHP-Add-text-to-image  
-Adds text to an image. PHP >= 7.0  
-  
-### Construct
-`__construct($text, $position_x, $position_y, $color, $image, $font, $font_size, $save_path)`
-  
-| Params        |Description                        | Type      |
-|---------------|-----------------------------------|-----------
-|text           |Text to add to image               | string    |
-|position_x	    |X position of text in image        | int       |
-|position_y	    |Y position of text in image        | int       |
-|color          |Text color                         | array     |
-|image          |The image to write text on         | string    |
-|font           |Text Font (file path)              | string    |
-|font_size      |Font size                          | int       |
-|save_path      |Save path. If image will be saved  | string    |
+Adds text to an image. PHP >= 7.0
 
-  
-## Display image on browser  
-```php  
-header('Content-Type: image/jpg');  
-  
-(new TextToImage('Hey FooBar'))  
-    ->setPosition(1, 1)  
-    ->setShadow(1, 1, [255, 0, 0])  
-    ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
-    ->setFontSize(40)  
-    ->setColor(255, 255, 255)  
-    ->setImage('generic.jpg')  
-    ->render();  
-```  
-  
-## Save image to file.  
-```php  
-echo (new TextToImage('Hey FooBar'))  
-    ->setPosition(1, 1)  
-    ->setShadow(1, 1, [255, 0, 0])  
-    ->setFont(__DIR__ . '/GreatVibes-Regular.otf')  
-    ->setFontSize(40)  
-    ->setColor(255, 255, 255)  
-    ->setImage('generic.jpg')  
-    ->setSavePath(__DIR__ . '/Rendered')  
-    ->render('my-new-image'); // Output: Rendered/my-new-image.jpg  
+### Usage (Existing Image)
+outputting modified image to the browser.
+```php
+header("Content-Type: image/png");
+
+TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler) {
+    $handler->add('Text One')->color(255, 0, 0);
+})->close();
 ```
-### methods
-`setPosition(int $position_x : 0, int $position_y : 0): TextToImage`   
-**Description:** Sets the position of text on image.
+Saving modified image as a new file.
+```php
+TextToImage::setImage(__DIR__ . '/default.png')->open(function (TextToImage $handler) {
+  $handler->add('Text One')->color(255, 0, 0);
+})->close(__DIR__ . '/new_name_without_extension');
+```
+
+### Usage (Non Existing Image)
+outputting modified image to the browser.
+```php
+header("Content-Type: image/png");
+
+TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler) {
+    $handler->add('Text One')->color(255, 0, 0);
+})->close();
+```
+Saving modified image as a new file.
+```php
+TextToImage::createImage(500, 500, 'png')->open(function (TextToImage $handler) {
+    $handler->add('Text One')->color(255, 0, 0);
+})->close(__DIR__ . '/new_name_without_extension');
+```
+
+### Writing multiple contents
+```php
+header("Content-Type: image/png");
+
+$text1 = function (TextToImage $handler) {
+    $handler->add('Text One')->color(255, 0, 0);
+};
+
+$text2 = function (TextToImage $handler) {
+    $handler->add('Text Two')->color(0, 0, 0)->shadow(1, 1, [3, 204, 0])->position(120, 40);
+};
+
+$text3 = function (TextToImage $handler) {
+    $handler->set('Text Three', 150, 0, [0, 0, 252], null, 10, 0, 0);
+};
+
+$text4 = function (TextToImage $handler) {
+    $handler->add('Imani And Her Dragon')
+            ->position(200, 300)
+            ->font(25, __DIR__ . '/sweet purple.otf')
+            ->color(0, 124, 0)
+            ->shadow(1, 2, [0, 0, 0]);
+};
+
+
+TextToImage::createImage(500, 500, 'png')->open($text1, $text2, $text3, $text4)->close();
+```
+---
+### Usage
+`setImage(string $image_path)` Modifies an existing image.
+
+| Params        |Description                            |
+|---------------|---------------------------------------|
+|image_path     |The path to image to write text onto   |
+
+---
+`createImage(int $width, int $height, string $ext = 'png', array $bg_color = [255, 255, 255])`
   
-| Params        |Description                        |
-|---------------|-----------------------------------|
-|position_x     |The X position.               |
-|position_y	    |The Y position.        |
+| Params        |Description                                  |
+|---------------|---------------------------------------------|
+|width          |The width of the image.                      |
+|height	        |The height of the image.                     |
+|ext	        |The image format e.g png, jpeg or gif        |
+|bg_color       |An array [r, g, b] of image background color |
+
+`open(Closure ...$closures)` Sets image modification data.
+
+| Params        |Description                     |
+|---------------|--------------------------------|
+| closures      |A sets of image modifications. Each Closure must accept an argument of `TextToImage`   |
 
 ---
 
-`setFont(string $font_path): TextToImage`   
-**Description:** Sets text font file path.
-  
-| Params        |Description                        |
-|---------------|-----------------------------------|
-|font_path     |The name of the font.               |
+`close(string $save_path = null)` Evaluates all specified image modification.
 
+| Params        |Description                     |
+|---------------|--------------------------------|
+| save_path     |The path/name without extension to save modified image. Ignore this if outputting to browser. |
 
 ---
 
-`setFontSize(int $size : 5): TextToImage`   
-**Description:** Sets text font size.
+#### Method that can be used within each open Closure
+```php
+TextToImage::createImage(...)->open(function (TextToImage $h) {
+    $h->add(...)
+      ->position(...)
+      ->font(...)
+      ->color(...)
+      ->shadow(...);
+}, ...)->close();
+```
+
+`add(string $text): TextToImage`  
+**Description:** Sets the text that will be written on image.
   
 | Params        |Description                        |
 |---------------|-----------------------------------|
-|size     |The font size of text.               |
+|text           |The text to add to image.          |
 
+
+`postion(int $position_x : 0, int $position_y : 0): TextToImage`   
+**Description:** Sets the position of specified text on image.
+  
+| Params        |Description                        |
+|---------------|-----------------------------------|
+|x              |The X position.                    |
+|y	            |The Y position.                    |
 ---
 
-`setColor(int $r : 255, int $g : 255, int $b : 255): TextToImage`   
-**Description:** Sets text color.
+`font(int $size, string $path = null): TextToImage`   
+**Description:** Sets the font/size of specified text.
   
 | Params        |Description                        |
 |---------------|-----------------------------------|
-|r     |Red.               |
-|g	    |Green.        |
-|b	    |Blue.        |
-
+|size           |The font size of text.             |
+|font_path      |The path to font file.             |
 ---
 
-`setImage(string $image_path): TextToImage`  
-**Description:** Sets the image text will be written on.
+
+`color(int $r : 255, int $g : 255, int $b : 255): TextToImage`   
+**Description:** Sets the color of specified text.
   
 | Params        |Description                        |
 |---------------|-----------------------------------|
-|image_path     |The name of the image.               |
-
+|r              |Red.                               |
+|g	            |Green.                             |
+|b	            |Blue.                              |
 ---
 
-`setSavePath(string $save_path): TextToImage`  
-**Description:** Sets image save path. Used if image is to be save to a file.
+`shadow(int $position_x, int $position_y, array $color : [0, 0, 0]): TextToImage`   
+**Description:** Adds shadow to specified text.  
   
 | Params        |Description                        |
 |---------------|-----------------------------------|
-|save_path     |The image save path.               |
-
+|position_x     |The shadow's X position.           |
+|position_y	    |The shadow's Y position.           |
+|color	        |The shadow's color.                |
 ---
-
-`setShadow(int $position_x, int $position_y, array $color : [0, 0, 0]): TextToImage`   
-**Description:** Sets image shadow, color and position. Calling this method without passing args will enable default shadow.  
-**Example:** `$tti->setShadow();`, `$tti->setShadow(null, null, [255, 0, 0]);`
-  
-| Params        |Description                        |
-|---------------|-----------------------------------|
-|position_x     |The shadow's X position.               |
-|position_y	    |The shadow's Y position.        |
-|color	    |The shadow's color.        |
-
----
-
-`render(string $save_as ): ?string`   
-**Description:** Renders Text upon image. If `$save_as` is specified, image will be saved as specified file.
-  
-| Params        |Description                        |
-|---------------|-----------------------------------|
-|save_as     |The file to write rendered image to.               |

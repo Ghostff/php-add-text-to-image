@@ -40,10 +40,19 @@ declare(strict_types=1);
 
 class TextToImage
 {
-    private $maps      = [];
-    /** @var string|null  */
-    private $work_with = null;
-    private $create    = [];
+    private $maps              = [];
+    private $work_with         = null;
+    private $create            = [];
+    /** @var null|string  */
+    private $text              = null;
+    private $position_x        = 0;
+    private $position_y        = 0;
+    private $font              = null;
+    private $font_size         = 5;
+    private $color             = [255, 255, 255];
+    private $shadow_color      = [];
+    private $shadow_position_x = null;
+    private $shadow_position_y = null;
 
     /**
      * TextToImage constructor.
@@ -51,7 +60,7 @@ class TextToImage
      * @param string $image_path    The path to image to modify.
      * @param array $create         An an array of properties for creating new image if $image_path is ''
      */
-    public function __construct(string $image_path, array $create = [])
+    protected function __construct(string $image_path, array $create = [])
     {
         $this->work_with = $image_path;
         $this->create    = $create;
@@ -83,7 +92,7 @@ class TextToImage
      * @param Closure ...$closures  A sets of image modifications.
      * @return $this
      */
-    public function open(Closure ...$closures)
+    public function open(Closure ...$closures): self
     {
         $this->maps = array_merge($this->maps, $closures);
 
@@ -123,10 +132,10 @@ class TextToImage
             }
         }
 
-        /** @var TextHandler $map */
+        /** @var TextToImage $map */
         foreach ($this->maps as $closure)
         {
-            $closure($map = new TextHandler());
+            $closure($map = new self(''));
 
             if ($map->font !== null && ! is_readable($map->font)) {
                 throw new RuntimeException("Font \"{$map->font}\" not found.");
@@ -180,36 +189,14 @@ class TextToImage
      *
      * @param int $width        The width of the image.
      * @param int $height       The height of the image.
-     * @param string $format    The image format e.g png, jpeg or gif
+     * @param string $ext       The image format e.g png, jpeg or gif
      * @param array $bg_color   An array [r, g, b] of image background color.
      * @return static
      */
-    public static function createImage(int $width, int $height, string $format = 'png', array $bg_color = [255, 255, 255]): self
+    public static function createImage(int $width, int $height, string $ext = 'png', array $bg_color = [255, 255, 255]): self
     {
-        return new self('', [$width, $height, $format, $bg_color]);
+        return new self('', [$width, $height, $ext, $bg_color]);
     }
-}
-
-class TextHandler
-{
-    /** @var string|null  */
-    public $text = null;
-    /** @var int  */
-    public $position_x = 0;
-    /** @var int  */
-    public $position_y = 0;
-    /** @var string|null  */
-    public $font = null;
-    /** @var int  */
-    public $font_size = 5;
-    /** @var array|null  */
-    public $color = [255, 255, 255];
-    /** @var array  */
-    public $shadow_color = [];
-    /** @var null|int  */
-    public $shadow_position_x = null;
-    /** @var null|int */
-    public $shadow_position_y = null;
 
     /**
      * Generic Set.
