@@ -1,7 +1,7 @@
 # PHP-Add-text-to-image  
 Add text to an existing or new image. PHP >= 7.0
 
-### Usage (Existing Image)
+### Usage
 ```php
 $text1 = Text::from('Text One')->color(231, 81, 0);
 
