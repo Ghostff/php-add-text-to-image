@@ -1,0 +1,21 @@
+{
+    "name": "ghostff/php-text-to-image",
+    "description": "Add text to an existing or new image",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ghostff\\PhpTextToImage\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ghostff",
+            "email": "frankchris@hotmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-gd": "*"
+    }
+}

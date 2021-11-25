@@ -1,46 +1,34 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
+use TextToImage\Text;
+use TextToImage\TextToImage;
 
 require_once __DIR__ . '/src/TextToImage.php';
+require_once __DIR__ . '/src/Text.php';
+
+$text1 = Text::from('Text One')->color(231, 81, 0);
+
+$text2 = Text::from('Text Two')->color(130, 146, 145)->position(260, 35);
+
+$text3 = (new Text('Text Three'))->set(150, 0, [0, 0, 252], '', 10, 1, 1, [50, 205, 50]);
+
+$text  = Text::from('Text!')
+            ->position(170, 150)
+            ->font(20, __DIR__ . '/sweet purple.otf')
+            ->shadow(2, 2, [255])
+            ->color(255,255, 0)
+            ->rotate(20);
 
 header("Content-Type: image/png");
 
-
-$text1 = function (TextToImage $handler) {
-    $handler->add('Text One')->color(255, 0, 0);
-};
-
-$text2 = function (TextToImage $handler) {
-    $handler->add('Text Two')->color(0, 0, 0)->shadow(1, 1, [3, 204, 0])->position(120, 40);
-};
-
-$text3 = function (TextToImage $handler) {
-    $handler->set('Text Three', 150, 0, [0, 0, 252], null, 10, 0, 0);
-};
-
-$text4 = function (TextToImage $handler) {
-    $handler->add('Imani And Her Dragon')
-            ->position(100, 300)
-            ->font(25, __DIR__ . '/sweet purple.otf')
-            ->color(0, 124, 0)
-            ->shadow(1, 2, [0, 0, 0]);
-};
+echo (new TextToImage(__DIR__ . '/default.png'))->addTexts($text1, $text2, $text3, $text)->render();
 
 
-# Write to an existing image
-TextToImage::setImage(__DIR__ . '/default.png')->open(
-    $text1,
-    $text2,
-    $text3,
-    $text4
-)->close();
 
 
-# Write to a new image
-/*TextToImage::createImage(500, 500, 'png', [222, 222, 222])->open(
-    $text1,
-    $text2,
-    $text3,
-    $text4
-)->close();*/
+
+
+
+
+
+
