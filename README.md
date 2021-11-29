@@ -1,4 +1,4 @@
-# PHP-Add-text-to-image  
+# PHP-add-text-to-image  
 Add text to an existing or new image. PHP >= 7.0
 
 ### Usage
