@@ -23,6 +23,7 @@ Writing to existing image
     header("Content-Type: image/png");
     echo (new TextToImage(__DIR__ . '/default.png'))->addTexts($text1, $text2, $text3, $text)->render();
 }
+    
 // Or save to a file
 (new TextToImage(__DIR__ . '/default.png'))->addTexts($text1, $text2, $text3, $text)->render(__DIR__ . '/tmp.png')
 ```
@@ -32,6 +33,7 @@ Writing to a new image:
     header("Content-Type: image/png");
     echo (new TextToImage())->setDimension(350, 350)->setBackgroundColor(0, 0, 0)->addTexts($text1, $text2, $text3, $text)->render();
 }
+    
 // Or save to a file
 (new TextToImage())->setDimension(350, 350)->setBackgroundColor(0, 0, 0)->addTexts($text1, $text2, $text3, $text)->render(__DIR__ . '/tmp.png');
 ```
