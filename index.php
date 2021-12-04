@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
-use TextToImage\Text;
-use TextToImage\TextToImage;
+use Ghostff\TextToImage\Text;
+use Ghostff\TextToImage\TextToImage;
 
 require_once __DIR__ . '/src/TextToImage.php';
 require_once __DIR__ . '/src/Text.php';

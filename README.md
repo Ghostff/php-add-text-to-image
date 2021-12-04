@@ -1,6 +1,10 @@
 # PHP-add-text-to-image  
 Add text to an existing or new image. PHP >= 7.0
 
+```shell
+composer require ghostff/php-text-to-image
+```
+
 ### Usage
 ```php
 $text1 = Text::from('Text One')->color(231, 81, 0);

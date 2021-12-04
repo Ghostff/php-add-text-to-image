@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace TextToImage;
+namespace Ghostff\TextToImage;
 
 use Closure;
 
