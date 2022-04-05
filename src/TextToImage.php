@@ -167,7 +167,7 @@ class TextToImage
      */
     private function getExtension(string $filename): string
     {
-        return (($position = strrpos($filename,'.')) !== false) ? substr($filename,$position + 1) : '';
+        return (($position = strrpos($filename,'.')) !== false) ? mb_strtolower(substr($filename,$position + 1)) : '';
     }
 
     /**
