@@ -11,6 +11,10 @@ class TextToImage
     private $width    = 200;
     private $height   = 200;
     private $bg_color = [255, 255, 255, 127];
+    /**
+     * @var BackgroundLayer[]
+     */
+    private $bg_layers = [];
 
     public function getHeight(): int {
         return $this->height;
@@ -80,6 +84,17 @@ class TextToImage
     }
 
     /**
+     * @param BackgroundLayer $bg_layer
+     * @return TextToImage
+     */
+    public function addBackgroundLayer(BackgroundLayer $bg_layer): self
+    {
+        $this->bg_layers[] = $bg_layer;
+
+        return $this;
+    }
+
+    /**
      * Renders modified image to a file or return contents.
      *
      * @param string|null $save_as  If specified, image content will be saved at the provided path.
@@ -112,6 +127,18 @@ class TextToImage
             } else {
                 throw new RuntimeException("{$ext} not supported, implement it yourself.");
             }
+        }
+
+        foreach ($this->bg_layers as $bg_layer)
+        {
+            $bg_layer_color = imagecolorallocatealpha($image, ...$bg_layer->getColor());
+            $bg_layer_position = $bg_layer->getPosition();
+            imagefilledrectangle($image,
+                $bg_layer_position[0],
+                $bg_layer_position[1],
+                (isset($bg_layer_position[2])) ? $bg_layer_position[2] : imagesx($image),
+                (isset($bg_layer_position[3])) ? $bg_layer_position[3] : imagesy($image),
+                $bg_layer_color);
         }
 
         /** @var Text $text */
