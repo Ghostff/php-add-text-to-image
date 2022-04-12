@@ -41,6 +41,13 @@ Writing to a new image:
 // Or save to a file
 (new TextToImage())->setDimension(350, 350)->setBackgroundColor(0, 0, 0)->addTexts($text1, $text2, $text3, $text)->render(__DIR__ . '/tmp.png');
 ```
+Writing with background layer:
+```php    
+$text = Text::from('Text example')->position(10, 25);
+$bg_layer = BackgroundLayer::create()->color(0,0,0, 85)->position(0,0,null, 40);
+$text_to_image = new TextToImage(__DIR__ . '/default.png');
+$text_to_image->addTexts($text)->addBackgroundLayer($bg_layer)->render(__DIR__ . '/tmp.png');
+```
 
 
 ----
