@@ -1,10 +1,6 @@
 # PHP-add-text-to-image  
 Add text to an existing or new image. PHP >= 7.0
 
-```shell
-composer require ghostff/php-text-to-image
-```
-
 ### Usage
 ```php
 $text1 = Text::from('Text One')->color(231, 81, 0);
@@ -47,6 +43,69 @@ $text = Text::from('Text example')->position(10, 25);
 $bg_layer = BackgroundLayer::create()->color(0,0,0, 85)->position(0,0,null, 40);
 $text_to_image = new TextToImage(__DIR__ . '/default.png');
 $text_to_image->addTexts($text)->addBackgroundLayer($bg_layer)->render(__DIR__ . '/tmp.png');
+```
+Example function:
+```php
+/**
+     * Print text on image with background layer. Supports multiline.      
+     * @param $path string Image path
+     * @param $text string Text that splitted with "\r\n" will be wrapped on next line.
+     * @param $text_position string 'top' - text will be on the top of image, 'bottom' - on the bottom
+     * @return bool
+     */
+    public static function setText($path, $text, $text_position = 'top')
+    {
+        $bg_layer_y2 = 0;
+        $bg_layer_y_increment = 29;
+        $text_font_size = 14;
+        $font_path = 'arial.ttf'; //path to your font
+        $pos_x = 10;
+        $pos_y_increment = 25;
+        $pos_y = 0;
+        $bg_layer_x = 0;
+        $bg_layer_y = 0;
+        $text_image = new TextToImage($path);
+        $max_length = number_format(0.075 * $text_image->getWidth()); // 75 letter / 1000px
+        if ($text_position == 'bottom') {
+            $pos_y = $text_image->getHeight() + $pos_y_increment / 1.5;
+            $bg_layer_y = $text_image->getHeight();
+            $bg_layer_y2 = null;
+        }
+        $text_array_tmp = explode("\r\n", $text);
+        $text_array = [];
+        foreach ($text_array_tmp as $tmp_value) { //generating array of rows based on the letters count
+            while (mb_strlen($tmp_value) > $max_length) {
+                $offset = mb_strpos($tmp_value, ' ', $max_length);
+                if ($offset === false) {
+                    break;
+                }
+                $sub_text = mb_substr($tmp_value, 0, $offset);
+                $text_array[] = $sub_text;
+                $tmp_value = mb_substr($tmp_value, $offset);
+            }
+            $text_array[] = $tmp_value;
+        }
+        unset($text_array_tmp);
+        if ($text_position == 'bottom') {
+            $text_array = array_reverse($text_array);
+        }
+        foreach ($text_array as $value) { //printing text
+            if ($text_position == 'bottom') {
+                $pos_y -= $pos_y_increment;
+                $bg_layer_y -= $bg_layer_y_increment;
+            } else {
+                $pos_y += $pos_y_increment;
+                $bg_layer_y2 += $bg_layer_y_increment;
+            }
+
+            $txt1 = Text::from($value)->position($pos_x, $pos_y)->font( $text_font_size, $font_path,  true);
+            $text_image->addTexts($txt1);
+        }
+        $bg_layer = BackgroundLayer::create()->color(0, 0, 0, 85)->position($bg_layer_x, $bg_layer_y, null, $bg_layer_y2); //printing bg layer
+        $text_image->addBackgroundLayer($bg_layer);
+
+        $text_image->render($path);
+    }
 ```
 
 
